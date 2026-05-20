@@ -1,0 +1,19 @@
+# Dossiers temporaires
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vscode/
+.vs/
+.idea/
+
+# Fichiers de projet (Rider/Visual Studio)
+*.sln
+*.vcxproj
+*.filters
+*.user
+*.code-workspace
+
+# Autres
+FileOpenOrder/
