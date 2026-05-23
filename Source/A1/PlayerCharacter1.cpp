@@ -8,6 +8,9 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "BaseEnemyCharacter.h"
+#include "InventoryComponent.h"
+#include "ItemData.h"
+#include "InventoryWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -20,7 +23,7 @@ APlayerCharacter1::APlayerCharacter1()
 	CameraBoom->TargetArmLength = 300.0f;
 	CameraBoom->bUsePawnControlRotation = true;
 
-	// Crée la caméra
+	// Create the camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 
@@ -43,6 +46,8 @@ APlayerCharacter1::APlayerCharacter1()
 	
 	HomingTarget = CreateDefaultSubobject<USceneComponent>(TEXT("HomingTarget"));
 	HomingTarget->SetupAttachment(GetRootComponent());
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 void APlayerCharacter1::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -66,6 +71,9 @@ void APlayerCharacter1::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Secondary
 		EnhancedInputComponent->BindAction(SecondaryAction, ETriggerEvent::Started, this, &APlayerCharacter1::Secondary);
+
+		// Toggle Menu
+		EnhancedInputComponent->BindAction(ToggleMenuAction, ETriggerEvent::Started, this, &APlayerCharacter1::ToggleMenu);
 	}
 	else
 	{
@@ -113,13 +121,12 @@ void APlayerCharacter1::Look(const FInputActionValue& Value)
 void APlayerCharacter1::Interact()
 {
 	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: BUMP TRIGGERED YAY!"));
-	// Active la collision pour détecter les ennemis
 	RepulseSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	// Afficher visuellement (optionnel)
+	// Display sphere if needed
 	RepulseSphere->SetHiddenInGame(false);
 
-	// Timer pour désactiver après 0.2 sec par exemple
+	// Timer after which the sphere deactivate
 	GetWorldTimerManager().SetTimer(
 		RepulseTimerHandle,
 		this,
@@ -131,8 +138,8 @@ void APlayerCharacter1::Interact()
 	TArray<AActor*> OverlappingActors;
 	RepulseSphere->GetOverlappingActors(OverlappingActors, ABaseEnemyCharacter::StaticClass());
 	FVector PlayerLocation = GetActorLocation();
-	float MaxForce = 1500.f; // force max quand l'ennemi est collé au joueur
-	float MinForce = 500.f;  // force min à la limite de la sphère
+	float MaxForce = 1500.f; 
+	float MinForce = 500.f;  
 	float Radius = RepulseSphere->GetScaledSphereRadius();
 
 	for (AActor* Actor : OverlappingActors)
@@ -145,11 +152,11 @@ void APlayerCharacter1::Interact()
 				float Distance = Direction.Size();
 				Direction = Direction.GetSafeNormal();
 
-				// Calcul de la force en fonction de la distance
+				// Calculate force based of off distance
 				float ForceMultiplier = FMath::Clamp(1.0f - (Distance / Radius), 0.f, 1.f);
 				float LaunchStrength = FMath::Lerp(MinForce, MaxForce, ForceMultiplier);
 
-				// On donne un peu de hauteur
+				// Some heigth
 				Direction.Z = 0.5f;
 				//Disable collision while bumped so they don't bump on each other
 				Enemy->SetSelfCollision(ECR_Ignore);
@@ -161,6 +168,18 @@ void APlayerCharacter1::Interact()
 
 void APlayerCharacter1::Secondary()
 {
+	//TODO remove, code is for testing purpose
+	if (InventoryComponent)
+	{
+		for (const auto& [ItemData, CurrentQuantity] : InventoryComponent->Content)
+		{
+			if (ItemData)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *ItemData->DisplayName.ToString());
+				
+			}
+		}
+	}
 	UE_LOG(LogTemp, Warning, TEXT("Secondary triggered YAY!"));
 	// Active la collision pour détecter les ennemis
 	RepulseSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -185,6 +204,46 @@ void APlayerCharacter1::Secondary()
 		{
 			Enemy->Freeze();
 		}
+	}
+}
+
+void APlayerCharacter1::ToggleMenu()
+{
+	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: Toggle menu"));
+	if (!InventoryWidgetClass) return;
+
+	if (!bIsInventoryOpen)
+	{
+		// Creates widget
+		if (!InventoryWidget)
+		{
+			InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
+		}
+
+		if (InventoryWidget)
+		{
+			// Pass inventory to it
+			InventoryWidget->InitializeInventory(this->InventoryComponent);
+			InventoryWidget->AddToViewport();
+            
+			// 4. Configurer la souris et l'input
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			PC->SetInputMode(FInputModeGameAndUI());
+			PC->bShowMouseCursor = true;
+            
+			bIsInventoryOpen = true;
+		}
+	}
+	else
+	{
+		// Close inventory
+		InventoryWidget->RemoveFromParent();
+        
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		PC->SetInputMode(FInputModeGameOnly());
+		PC->bShowMouseCursor = false;
+        
+		bIsInventoryOpen = false;
 	}
 }
 

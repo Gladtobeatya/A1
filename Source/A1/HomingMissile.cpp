@@ -77,7 +77,7 @@ DeltaTime,
 1
 );*/
 
-	UE_LOG(LogTemp, Warning, TEXT("Current Velocity : %f"), ProjectileMovement->Velocity.Size());
+	//UE_LOG(LogTemp, Warning, TEXT("Current Velocity : %f"), ProjectileMovement->Velocity.Size());
 }
 
 void AHomingMissile::SwitchToPlayerHoming()

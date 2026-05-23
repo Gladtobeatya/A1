@@ -20,6 +20,15 @@ class A1_API IInteractable
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	//BlueprintNativeEvent = default implementation in c++, and can be overriden in blueprint
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
+	void OnInteract(class ABaseCharacter* Interactor);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
+	FText GetInteractionFullText();
+
+	//BlueprintImplementableEvent = only blueprint can implement it
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	void SetFocused();
 };

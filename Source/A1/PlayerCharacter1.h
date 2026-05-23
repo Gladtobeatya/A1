@@ -51,10 +51,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess = "true"))
 	UInputAction* SecondaryAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess = "true"))
+	UInputAction* ToggleMenuAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Interact();
 	void Secondary();
+	void ToggleMenu();
 	/*End inputs */
 
 	/*Abilities*/
@@ -78,4 +82,20 @@ protected:
 
 	virtual USceneComponent* GetHomingTargetComponent_Implementation() override;
 	/*End Targetable interface implementation*/
+
+	// La classe du widget (à remplir dans le BP du perso)
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
+
+	// L'instance du widget une fois créé
+	UPROPERTY()
+	class UInventoryWidget* InventoryWidget;
+
+	bool bIsInventoryOpen = false;
+public:
+	/*Inventory*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	class UInventoryComponent* InventoryComponent;
+	
+	/*End inventory*/
 };
