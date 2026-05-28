@@ -83,11 +83,11 @@ protected:
 	virtual USceneComponent* GetHomingTargetComponent_Implementation() override;
 	/*End Targetable interface implementation*/
 
-	// La classe du widget (à remplir dans le BP du perso)
+	// Widget class (to fill in character BP)
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
 
-	// L'instance du widget une fois créé
+	// Widget Instance once its created
 	UPROPERTY()
 	class UInventoryWidget* InventoryWidget;
 

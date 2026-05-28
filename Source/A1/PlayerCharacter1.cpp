@@ -211,7 +211,7 @@ void APlayerCharacter1::ToggleMenu()
 {
 	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: Toggle menu"));
 	if (!InventoryWidgetClass) return;
-
+	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: Inventorywidget class OK"));
 	if (!bIsInventoryOpen)
 	{
 		// Creates widget
@@ -226,7 +226,7 @@ void APlayerCharacter1::ToggleMenu()
 			InventoryWidget->InitializeInventory(this->InventoryComponent);
 			InventoryWidget->AddToViewport();
             
-			// 4. Configurer la souris et l'input
+			// Configure mouse and input
 			APlayerController* PC = Cast<APlayerController>(GetController());
 			PC->SetInputMode(FInputModeGameAndUI());
 			PC->bShowMouseCursor = true;

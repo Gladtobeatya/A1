@@ -6,6 +6,13 @@
 #include "Engine/DataAsset.h"
 #include "ItemData.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EItemType : uint8 {
+	Resource,
+	Consumable,
+	Upgrade
+};
 /**
  * 
  */
@@ -16,6 +23,10 @@ class A1_API UItemData : public UPrimaryDataAsset
 
 public:
 
+	virtual bool Use() const { return false; }
+
+	UPROPERTY(EditAnywhere, Category="Item")
+	EItemType ItemType;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Item", meta=(AllowPrivateAccess="true"))
 	FText DisplayName = INVTEXT("Item name");
@@ -31,8 +42,8 @@ public:
 
 	// "Casser", "Ramasser", "Ouvrir.."
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction", meta=(AllowPrivateAccess="true"))
-	FText DefaultInteractionVerb = INVTEXT("Verb");;
+	FText DefaultInteractionVerb = INVTEXT("Verb");
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Item", meta=(AllowPrivateAccess="true"))
-	int32 MaxStackSize = 5;
+	int32 MaxStackSize = 1;
 };

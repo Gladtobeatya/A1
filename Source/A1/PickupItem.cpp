@@ -12,8 +12,8 @@ void APickupItem::OnInteract_Implementation(ABaseCharacter* Interactor)
 	UE_LOG(LogTemp, Warning, TEXT("before check dynamic"));
 	if (const APlayerCharacter1* Character = dynamic_cast<APlayerCharacter1*>(Interactor))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("after dynamic cst"));
-		Character->InventoryComponent->AddItem(this->ItemData);
+		
+		UE_LOG(LogTemp, Warning, TEXT("Pickupitem : %d"), Character->InventoryComponent->AddItem(this->ItemData));
 	}
 	
 }
