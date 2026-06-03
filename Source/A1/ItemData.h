@@ -46,4 +46,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Item", meta=(AllowPrivateAccess="true"))
 	int32 MaxStackSize = 1;
+
+	//todo add quantity?
 };

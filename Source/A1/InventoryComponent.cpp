@@ -42,6 +42,9 @@ int32 UInventoryComponent::AddItem(UItemData* Item, int32 Quantity)
 			Remaining -= ToAdd;
 		}
 	}
+
+	OnInventoryChanged.Broadcast();
+	
 	return Remaining;
 }
 

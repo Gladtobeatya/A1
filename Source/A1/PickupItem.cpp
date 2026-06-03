@@ -12,8 +12,15 @@ void APickupItem::OnInteract_Implementation(ABaseCharacter* Interactor)
 	UE_LOG(LogTemp, Warning, TEXT("before check dynamic"));
 	if (const APlayerCharacter1* Character = dynamic_cast<APlayerCharacter1*>(Interactor))
 	{
-		
-		UE_LOG(LogTemp, Warning, TEXT("Pickupitem : %d"), Character->InventoryComponent->AddItem(this->ItemData));
+		int32 remaining = Character->InventoryComponent->AddItem(this->ItemData);
+		if (remaining == 0)
+		{
+			this->Destroy();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pickupitem : %d items could not be added!"), remaining);
+			//TODO spawn and drop item
+		}
 	}
-	
 }

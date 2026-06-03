@@ -83,19 +83,39 @@ protected:
 	virtual USceneComponent* GetHomingTargetComponent_Implementation() override;
 	/*End Targetable interface implementation*/
 
-	// Widget class (to fill in character BP)
-	UPROPERTY(EditAnywhere, Category = "UI")
-	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
-
-	// Widget Instance once its created
-	UPROPERTY()
-	class UInventoryWidget* InventoryWidget;
-
+	/*Inventory*/
 	bool bIsInventoryOpen = false;
+	/*End inventory*/
+	
+	/*LifeSupport*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Oxygen")
+	USphereComponent* OxygenSensor;
+	/*End lifeSupport*/
+
+	/*HUD*/
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UMainHUDWidget> MainHUDWidgetClass;
+
+	UPROPERTY()
+	class UMainHUDWidget* MainHUDWidget;
+
+	void InitMainHudWidget();
+	/*End HUD*/
+
 public:
 	/*Inventory*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	class UInventoryComponent* InventoryComponent;
-	
 	/*End inventory*/
+
+	/*LifeSupport*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	class ULifeSupportComponent* LifeSupportComponent;
+	
+	const USphereComponent* GetOxygenSensor() const;
+	/*End lifeSupport*/
+
+	/*Interactor*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	class UInteractorComponent* InteractorComponent;
 };

@@ -2,9 +2,13 @@
 
 
 #include "InventoryWidget.h"
-
+#include "InventoryComponent.h"
 void UInventoryWidget::InitializeInventory(class UInventoryComponent* NewInventory)
 {
 	InventoryReference = NewInventory;
-	OnInventoryInitialized(); 
+	if (InventoryReference)
+	{
+		InventoryReference->OnInventoryChanged.AddDynamic(this, &UInventoryWidget::RefreshInventoryUI);
+	}
+	RefreshInventoryUI();
 }

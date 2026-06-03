@@ -18,9 +18,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void InitializeInventory(class UInventoryComponent* NewInventory);
 
-	//For BP usage
+protected:
+	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
-	void OnInventoryInitialized();
+	void RefreshInventoryUI();
 	
 	// Which inventory to display 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory")

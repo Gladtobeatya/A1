@@ -30,5 +30,5 @@ public:
 
 	//BlueprintImplementableEvent = only blueprint can implement it
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	void SetFocused();
+	void SetFocused(bool bIsFocused);
 };

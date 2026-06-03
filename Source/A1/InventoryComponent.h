@@ -7,6 +7,8 @@
 #include "InventoryComponent.generated.h"
 class UItemData;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryChanged);
+
 USTRUCT(BlueprintType)
 struct FInventorySlot
 {
@@ -35,7 +37,6 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
-
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -50,4 +51,7 @@ public:
 	// Max number of slots
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 MaxTotalCapacity = 20;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryChanged OnInventoryChanged;
 };

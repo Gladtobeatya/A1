@@ -8,9 +8,15 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "BaseEnemyCharacter.h"
+#include "Interactable.h"
+#include "InteractionWidget.h"
+#include "InteractorComponent.h"
 #include "InventoryComponent.h"
 #include "ItemData.h"
+#include "MainHUDWidget.h"
 #include "InventoryWidget.h"
+#include "LifeSupportComponent.h"
+#include "LifeSupportWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -48,6 +54,14 @@ APlayerCharacter1::APlayerCharacter1()
 	HomingTarget->SetupAttachment(GetRootComponent());
 
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	LifeSupportComponent = CreateDefaultSubobject<ULifeSupportComponent>(TEXT("LifeSupportComponent"));
+	InteractorComponent = CreateDefaultSubobject<UInteractorComponent>(TEXT("InteractorComponent"));
+	
+	OxygenSensor = CreateDefaultSubobject<USphereComponent>(TEXT("OxygenSensor"));
+	OxygenSensor->SetupAttachment(GetMesh(), FName("SK_Mouth"));
+	OxygenSensor->SetSphereRadius(5.0f);
+	OxygenSensor->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	OxygenSensor->SetGenerateOverlapEvents(true);
 }
 
 void APlayerCharacter1::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -84,12 +98,13 @@ void APlayerCharacter1::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 void APlayerCharacter1::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UE_LOG(LogTemp, Warning, TEXT("Lancement du composant sur %s (Adresse : %p)"), *GetOwner()->GetName(), this);
 	if (AController* PC = GetController())
 	{
 		// Pitch/Yaw/Roll of the camera, because we can't default in viewport since it follow the player's inputs
 		PC->SetControlRotation(FRotator(-40.f, 0.f, 0.f)); 
 	}
+	InitMainHudWidget();
 }
 
 void APlayerCharacter1::Move(const FInputActionValue& Value)
@@ -120,7 +135,16 @@ void APlayerCharacter1::Look(const FInputActionValue& Value)
 
 void APlayerCharacter1::Interact()
 {
-	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: BUMP TRIGGERED YAY!"));
+	if (InteractorComponent)
+	{
+		AActor* FocusedActor = InteractorComponent->GetFocusedActor();
+		if (FocusedActor && FocusedActor->Implements<UInteractable>())
+		{
+			IInteractable::Execute_OnInteract(FocusedActor, this);
+		}
+	}
+	//OLD INTERACT!
+	/*UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: BUMP TRIGGERED YAY!"));
 	RepulseSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	// Display sphere if needed
@@ -163,7 +187,7 @@ void APlayerCharacter1::Interact()
 				Enemy->LaunchCharacter(Direction * LaunchStrength, true, true);
 			}
 		}
-	}
+	}*/
 }
 
 void APlayerCharacter1::Secondary()
@@ -181,13 +205,13 @@ void APlayerCharacter1::Secondary()
 		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Secondary triggered YAY!"));
-	// Active la collision pour détecter les ennemis
+	// Active collision 
 	RepulseSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	// Afficher visuellement (optionnel)
+	// Visual display for debug
 	RepulseSphere->SetHiddenInGame(false);
 
-	// Timer pour désactiver après 0.2 sec par exemple
+	// Timer to deactivate after .2sec
 	GetWorldTimerManager().SetTimer(
 		RepulseTimerHandle,
 		this,
@@ -210,34 +234,24 @@ void APlayerCharacter1::Secondary()
 void APlayerCharacter1::ToggleMenu()
 {
 	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: Toggle menu"));
-	if (!InventoryWidgetClass) return;
-	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: Inventorywidget class OK"));
+	if (!MainHUDWidget || !MainHUDWidget->InventoryWidget) return;
+	UE_LOG(LogTemp, Warning, TEXT("PLayerCharacter: mainwidget class OK"));
+	//Show inventory
 	if (!bIsInventoryOpen)
 	{
-		// Creates widget
-		if (!InventoryWidget)
-		{
-			InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
-		}
-
-		if (InventoryWidget)
-		{
-			// Pass inventory to it
-			InventoryWidget->InitializeInventory(this->InventoryComponent);
-			InventoryWidget->AddToViewport();
-            
-			// Configure mouse and input
-			APlayerController* PC = Cast<APlayerController>(GetController());
-			PC->SetInputMode(FInputModeGameAndUI());
-			PC->bShowMouseCursor = true;
-            
-			bIsInventoryOpen = true;
-		}
+		MainHUDWidget->InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+		
+		// Configure mouse and input
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		PC->SetInputMode(FInputModeGameAndUI());
+		PC->bShowMouseCursor = true;
+        
+		bIsInventoryOpen = true;
 	}
+	//Hide inventory
 	else
 	{
-		// Close inventory
-		InventoryWidget->RemoveFromParent();
+		MainHUDWidget->InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
         
 		APlayerController* PC = Cast<APlayerController>(GetController());
 		PC->SetInputMode(FInputModeGameOnly());
@@ -256,4 +270,34 @@ void APlayerCharacter1::DeactivateRepulseSphere()
 USceneComponent* APlayerCharacter1::GetHomingTargetComponent_Implementation()
 {
 	return HomingTarget;
+}
+
+void APlayerCharacter1::InitMainHudWidget()
+{
+	// Creates Main HUD widget (UI) if we set the class in BP
+	if (MainHUDWidgetClass)
+	{
+		MainHUDWidget = CreateWidget<UMainHUDWidget>(GetWorld(), MainHUDWidgetClass);
+		if (MainHUDWidget)
+		{
+			MainHUDWidget->AddToViewport();
+			if (MainHUDWidget->LifeSupportWidget)
+			{
+				MainHUDWidget->LifeSupportWidget->InitializeLifeSupport(LifeSupportComponent);
+			}
+			if (MainHUDWidget->InventoryWidget)
+			{
+				MainHUDWidget->InventoryWidget->InitializeInventory(InventoryComponent);
+			}
+			if (MainHUDWidget->InteractionWidget)
+			{
+				MainHUDWidget->InteractionWidget->InitializeInteraction(InteractorComponent);
+			}
+		}
+	}
+}
+
+const USphereComponent* APlayerCharacter1::GetOxygenSensor() const
+{
+	return OxygenSensor;
 }
